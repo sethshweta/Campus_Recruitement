@@ -1,0 +1,309 @@
+---
+title: "MLA CIA1"
+author: "Shweta Seth 2027661"
+date: "26/07/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+*Libraries Used*
+```{r}
+# Important Library used
+library(caTools)
+library(ggplot2)
+library(psych)
+library(plyr)
+library(descr)
+library(caTools)
+library(ggplot2)
+library(car)
+library(lmtest)
+library(moments)
+library(broom)
+library(Metrics)
+```
+*DATA CLEANING*  
+```{r}
+# Reading the dataset
+Placement_data<-read.csv("C:/Users/User/Desktop/MLA data/Placement_Data_Full_Class.csv",stringsAsFactors = TRUE)
+Placement_data
+# Dimension of dataset
+dim(Placement_data)
+# Head values 
+head(Placement_data)
+# Tail Values
+tail(Placement_data)
+# Summary Statistics of dataset
+summary(Placement_data)
+#Replacing null values in Salary column with 0
+index<-is.na(Placement_data$salary)
+Placement_data$salary[index]<-0
+Placement_data$salary
+
+# Head values of dataset
+head(Placement_data,10)
+# Dimensions of dataset
+dim(Placement_data)
+#Sum of null values in 'Salary' Column
+sum(is.na(Placement_data$salary))
+# converting status column into numeric values of 0 and 1 where 1 means Placed , 0 means Not Placed
+Placement_data$status = ifelse( Placement_data$status == "Placed", 1, 0)
+head(Placement_data)
+Placement_data$status
+```
+*Histogram*
+```{r}
+
+# histogram of SSC percentage (12th percentage)
+hist(Placement_data$ssc_p)
+# histogram of HSC percentage (10th percentage)
+hist(Placement_data$hsc_p)
+# histogram of Graduation degree percentage 
+hist(Placement_data$degree_p)
+# histogram of employability test
+hist(Placement_data$etest_p)
+# histogram of MBA percentage
+hist(Placement_data$MBA_per)
+# Boxplot of SSC percentage (12th percentage)
+boxplot(Placement_data$ssc_p)
+# Boxplot of HSC percentage (10th percentage)
+boxplot(Placement_data$hsc_p)
+# Boxplot of Graduation degree percentage
+boxplot(Placement_data$degree_p)
+# Boxplot of Salary
+boxplot(Placement_data$salary)
+```
+*Renaming few columns for better understanding*
+```{r}
+# RENAMING THE COLUMNS
+# Renaming 'degree_p' to 'Grad_per'
+Placement_data$Grad_per<-Placement_data$degree_p
+# Renaming 'degree_t' to 'Grad_stream'
+Placement_data$Grad_stream<-Placement_data$degree_t
+# Renaming 'ssc_p' to 'SSC_per'
+Placement_data$SSC_per<-Placement_data$ssc_p
+# Renaming 'SSC_per' to 'ssc_p'
+Placement_data$HSC_per<-Placement_data$hsc_p
+# Renaming 'hsc_p' to 'HSC_per'
+Placement_data$SSC_board<-Placement_data$ssc_b
+# Renaming 'hsc_b' to 'HSC_board'
+Placement_data$HSC_board<-Placement_data$hsc_b
+# Renaming 'status' to 'Placed_status'
+Placement_data$Placed_status<-Placement_data$status
+# Renaming 'mba_p' to 'MBA_per'
+Placement_data$MBA_per<-Placement_data$mba_p
+
+# Summary of dataset
+summary(Placement_data)
+# View dataset
+View(Placement_data)
+```
+*DATA EXPLORATION* 
+```{r}
+# CONTINGENCY TABLES
+# Table of gender
+table(Placement_data$gender)
+# Table of SSC_board
+table(Placement_data$SSC_board)
+# Table of HSC_board
+table(Placement_data$HSC_board)
+# Table of degree_t
+table(Placement_data$degree_t)
+# Table of workex
+table(Placement_data$workex)
+# Table of status
+table(Placement_data$status)
+# Table of specialisation
+table(Placement_data$specialisation)
+
+# Table between gender and SSC_board
+table(Placement_data$gender,Placement_data$SSC_board)
+# Table between gender and HSC_board
+table(Placement_data$gender,Placement_data$HSC_board)
+# Table between gender and Placed_status
+table(Placement_data$gender,Placement_data$Placed_status)
+# Table between gender and specialization
+table(Placement_data$gender,Placement_data$specialisation)
+# Table between Placed_status and specialization
+table(Placement_data$Placed_status,Placement_data$specialisation)
+```
+*Statistical Tests
+```{r}
+# STATISTICAL TEST 
+# Student T test 
+# Salary offered by corporate  is same among males/females
+t.test(Placement_data$salary~Placement_data$gender)
+#mean in group ( Female ) F 168815.8   and  mean in group (Male) M 215043.2 
+t.test(Placement_data$salary~Placement_data$specialisation)
+#mean in group Mkt&Fin 236591.7 and  mean in group Mkt&HR 150842.1
+ 
+# Correlation  
+cor.test(Placement_data$HSC_per,Placement_data$SSC_per)
+# here95 percent confidence interval: 0.4054137 0.6039438
+# cor 0.5114721  p- value is less than 0.05 hence we reject H0
+
+cor.test(Placement_data$degree_p,Placement_data$SSC_per)
+#95 percent confidence interval:0.4360107 0.6270357   cor 0.538404 
+cor.test(Placement_data$degree_p,Placement_data$HSC_per)
+#95 percent confidence interval:0.3189315 0.5368211
+# cor 0.4342058 
+
+# H0 no association b/w gender and placement status (independent)
+# Ha association b/w gender and placement status     (dependent)
+chisq.test(Placement_data$status,Placement_data$gender)
+# since p-value is greater than 0.05 , we fail to reject H0 , hence no association b/w 2 variables
+
+#NORMALITY CHECK
+shapiro.test(Placement_data$Placed_status)
+shapiro.test(Placement_data$salary)
+shapiro.test(Placement_data$SSC_per)
+shapiro.test(Placement_data$HSC_per)
+shapiro.test(Placement_data$Grad_per)
+shapiro.test(Placement_data$MBA_per)
+shapiro.test(Placement_data$etest_p)
+```
+
+# VISUALIZATION OF DATASET USING GGPLOT
+```{r}
+# Bar graph between gender and specialization
+ggplot(Placement_data,aes(gender,fill=specialisation))+geom_bar(position = "dodge")
+# Bar graph between gender and workex
+ggplot(Placement_data,aes(gender,fill=workex))+geom_bar(position = "dodge")
+# Bar graph between gender and SSC_board
+ggplot(Placement_data,aes(gender,fill=SSC_board))+geom_bar(position = "dodge")
+# Bar graph between gender and HSC_board
+ggplot(Placement_data,aes(gender,fill=HSC_board))+geom_bar(position = "dodge")
+# Bar graph between gender and degree_t
+ggplot(Placement_data,aes(gender,fill=degree_t))+geom_bar(position = "dodge")
+# Bar graph between gender and hsc_s
+ggplot(Placement_data,aes(gender,fill=hsc_s))+geom_bar(position = "dodge")
+
+# Line graph between gender and HSC_per
+ggplot(Placement_data, aes(gender,HSC_per))+geom_line()
+# Line graph between SSC_board and salary
+ggplot(Placement_data, aes(SSC_board, salary))+geom_line()
+# Line graph between HSC_board and salary
+ggplot(Placement_data, aes(HSC_board, salary))+geom_line()
+# Line graph between specialisation and Placed_status
+ggplot(Placement_data, aes(specialisation,Placed_status))+geom_line()
+
+# Scatter Plot between HSC_per and SSC_per
+ggplot(Placement_data, aes(HSC_per,SSC_per))+geom_point()
+ggplot(Placement_data, aes(HSC_per,SSC_per))+geom_point(aes(color=gender))
+# Scatter Plot between HSC_per and Grad_per
+ggplot(Placement_data, aes(HSC_per,Grad_per))+geom_point(aes(color=gender))
+# Scatter Plot between HSC_per and MBA_per
+ggplot(Placement_data, aes(HSC_per,MBA_per))+geom_point(aes(color=gender))
+# Scatter Plot between SSC_per and MBA_per
+ggplot(Placement_data, aes(SSC_per,MBA_per))+geom_point(aes(color=gender))
+# Scatter Plot between SSC_per and Grad_per
+ggplot(Placement_data, aes(SSC_per,Grad_per))+geom_point(aes(color=gender))
+# Scatter Plot between MBA_per and Grad_per
+ggplot(Placement_data, aes(MBA_per,Grad_per))+geom_point(aes(color=gender))
+# Scatter Plot between etest_p and salary
+ggplot(Placement_data, aes(etest_p,salary))+geom_point(aes(color=gender))
+```
+*MULTIPLE LINEAR REGRESSION*
+*mathematical formula for multiple regression*
+y = b1x1 + b2x2 + … + bnxn + c.
+```{r}
+set.seed(100)
+# Splitting dataset into 70% training and 30% testing data
+split1<-sample.split(Placement_data$sl_no,SplitRatio = 0.7)
+summary(split1)
+# 70% training data
+datatrain<-subset(Placement_data,split1==TRUE)
+# 30% testing data
+datatest<-subset(Placement_data,split1==FALSE)
+# Summary of training data
+summary(datatrain)
+# Structure of training data
+str(datatrain)
+# Dimension of training data
+dim(datatrain)
+# Dimension of testing data
+dim(datatest)
+#Checking for Linear Relationship using multiple inear regression model
+reg_status<-lm(status~ssc_p
+         +hsc_p
+         +degree_p
+         +mba_p
+         +etest_p
+         +salary,
+         data=datatrain)
+reg_status
+# summary of regression model 
+summary(reg_status)
+
+summary(reg_status)$coefficient
+# confidence interval of the model coefficient
+confint(reg_status)
+# Residual Standard Error
+sigma(reg_status)/mean(Placement_data$Placed_status)
+```
+*Multicollinearity*
+```{r}
+#multicollinearity
+vif(reg_status)
+# there is no problem of multicollinerity as value of variables is less than 2.5
+```
+*Randomness of error terms*
+```{r}
+# checking randomness of error terms
+plot(reg_status$residuals,c(1:length(reg_status$residuals)))
+```
+**
+```{r}
+#shapiro, qqnorm,boxplot, histogram
+qqnorm(reg_status$residuals)
+qqline(reg_status$residuals)
+boxplot(reg_status$residuals)
+#H0 data is normally distributed , Ha data is not normally distributed
+shapiro.test(reg_status$residuals)
+
+# normality check through histogram
+x<-reg_status$residuals
+hist(x)
+# dataset is not normally distributed , it is slightly deviated from being normal
+
+#skewness and kurtosis --normality check
+datatrain$residual1<-reg_status$residuals
+summary(datatrain$residual1)
+
+descr(datatrain)
+summary(datatrain)
+
+# Kurtosis and Skewness of dataset
+moments::skewness(datatrain$residual1)
+moments::kurtosis(datatrain$residual1)
+#There is problem of kurtosis and hence we conclude data is not normally distributed
+```
+*Prediction and RMSE*
+```{r}
+#prediction and rmse
+predicted<-predict(reg_status,Placement_data)
+rmse(predicted,Placement_data$Placed_status)
+```
+*Outliers Detection and Heteroscadicity check*
+```{r}
+#OUTLIERS
+# Checking Heteroscadicity in model 
+plot(reg_status$residuals,reg_status$fitted.values)
+# if there is cone shape then maybe heterscadicity problem
+
+#H0 equal variance , Ha unequal variance
+# problem of normality of error terms and we reject H0
+# Breusch Pagan Test 
+bptest(reg_status)
+```
+*Influence Plot*
+```{r}
+# outliers detection
+# Influence plot for understanding whether there are outliers which are affecting the mode
+plot(reg_status)
+influenceIndexPlot(reg_status)
+
+boxplot.stats(Placement_data$salary)$out
+```
